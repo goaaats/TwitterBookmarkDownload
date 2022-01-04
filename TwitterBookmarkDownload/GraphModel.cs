@@ -106,8 +106,11 @@ public class GraphModel
         [JsonProperty("extended_entities")]
         public TweetExtendedEntities? ExtendedEntities { get; set; }
 
-        //[JsonProperty("created_at")]
-        //public DateTime CreatedAt { get; set; }
+        /// <summary>
+        /// ddd MMM dd HH:mm:ss K yyyy
+        /// </summary>
+        [JsonProperty("created_at")]
+        public string CreatedAt { get; set; }
     }
 
     public class TweetExtendedEntities

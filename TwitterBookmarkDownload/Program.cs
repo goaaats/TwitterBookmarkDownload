@@ -1,11 +1,11 @@
-﻿using System.Collections.Concurrent;
+﻿using CommandLine;
+using PuppeteerSharp;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
-using CommandLine;
-using Newtonsoft.Json;
-using PuppeteerSharp;
 
 namespace TwitterBookmarkDownload;
 
@@ -46,7 +46,7 @@ public class Program
 
             // just return first match
         }
-        catch(Win32Exception)
+        catch (Win32Exception)
         {
             throw new Exception("'where' command is not on path");
         }
@@ -94,6 +94,8 @@ public class Program
 
                         if (p.ExitCode != 0)
                             throw new Exception($"yt-dlp failed for {media.Url}");
+
+                        // Find the file, so that we can set the file time
                         break;
 
                     default:
@@ -111,7 +113,7 @@ public class Program
 
     private static void DownloadThreadStart(object? outPath)
     {
-        var existingFiles = Directory.GetFiles((string) outPath);
+        var existingFiles = Directory.GetFiles((string)outPath);
         var dlCounter = 1;
         while (!downloadThreadCancel.Token.IsCancellationRequested)
         {
@@ -127,7 +129,7 @@ public class Program
                         continue;
                     }
 
-                    DownloadEntry(instructionContent, (string) outPath, existingFiles).GetAwaiter().GetResult();
+                    DownloadEntry(instructionContent, (string)outPath, existingFiles).GetAwaiter().GetResult();
                     index++;
                 }
 
@@ -208,6 +210,20 @@ public class Program
 
             Console.WriteLine("Scrolling to the bottom...");
 
+            Console.CancelKeyPress += async (sender, eventArgs) => 
+            {
+                browser.CloseAsync();
+
+                Thread.Sleep(500);
+                if (dlThread is {IsAlive: true})
+                {
+                    downloadThreadCancel.Cancel();
+                    dlThread.Join();
+                }
+
+                Environment.Exit(0);
+            };
+
             const int distance = 100;
             var totalHeight = 0;
             var scrollHeight = await page.EvaluateExpressionAsync<int>("document.body.scrollHeight");
@@ -233,7 +249,7 @@ public class Program
                 if (totalHeight >= scrollHeight)
                     break;
             }
-            
+
             Console.WriteLine("Scroll done.");
 
             // Wait for download & scroll thread to finish up
@@ -246,7 +262,9 @@ public class Program
             dlThread.Join();
             Console.WriteLine($"Done!\nNumber of photos/videos: {numExisting}\nActually downloaded: {numDownloaded}\n\nTake care! Twitter is extremely unreliable and might have indicated to us that your bookmarks timeline has ended earlier than it actually did, you may have to run the downloader again.");
 
-            Console.ReadKey();
+            Thread.Sleep(2000);
+
+            await browser.CloseAsync();
         });
     }
 }
