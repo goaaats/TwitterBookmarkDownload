@@ -11,7 +11,7 @@ There is no nice way to deal with this, so if you notice that this tool scrolled
 
 The [feedback post](https://twitterdevfeedback.uservoice.com/forums/930250-twitter-api/suggestions/39678766-api-endpoint-for-getting-bookmarks) requesting a public API for bookmarks has been sitting idle since August 2020, when the feature was introduced. Considering the state of their public API, it probably won't happen.
 
-If scrolling stops and shows a "retry" button, you might have to restart.
+If scrolling stops and shows a "retry" button, you might have to restart. If the bookmarks page doesn't load at all(also a Twitter issue), you probably have to try again.
 
 ## Requirements
 1. dotnet 6
